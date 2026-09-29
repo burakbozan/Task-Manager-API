@@ -24,3 +24,16 @@ Designed as a microservice-friendly project with clean architecture and room for
 /docs
 ├── ARCHITECTURE.md
 /frontend (optional later)
+
+
+## ▶️ Getting Started
+1. Clone the repo
+2. Run `mvn spring-boot:run`
+3. Access API at `http://localhost:8080/api/tasks`
+
+## 📌 Roadmap
+- [ ] Add Swagger/OpenAPI docs
+- [ ] Implement role-based access
+- [ ] Add Docker & CI/CD pipeline
+- [ ] Extend with microservices (notifications, reporting)
+
