@@ -17,15 +17,6 @@ Designed as a microservice-friendly project with clean architecture and room for
 - H2/PostgreSQL (configurable)
 - Maven
 
-## 📂 Project Structure
-/backend
-├── src
-├── pom.xml
-/docs
-├── ARCHITECTURE.md
-/frontend (optional later)
-
-
 ## ▶️ Getting Started
 1. Clone the repo
 2. Run `mvn spring-boot:run`
