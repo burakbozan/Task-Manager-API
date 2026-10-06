@@ -1,30 +1,33 @@
 # Task Manager API
 
-A Spring Boot–based REST API for managing tasks, categories, and deadlines.  
-Designed as a microservice-friendly project with clean architecture and room for extensions.
+A Spring Boot REST API for creating, listing, and deleting tasks. It uses Java 17,
+Maven, Spring Web, Spring Data JPA, Lombok, and an in-memory H2 database.
 
-## 🚀 Features
-- User registration & JWT authentication
-- CRUD operations for tasks
-- Task categories & deadlines
-- RESTful API design
-- Ready for Docker deployment
+## Run
 
-## 🛠️ Tech Stack
-- Java 17
-- Spring Boot
-- Spring Security (JWT)
-- H2/PostgreSQL (configurable)
-- Maven
+With Java 17 and Maven installed, start the application from the project root:
 
-## ▶️ Getting Started
-1. Clone the repo
-2. Run `mvn spring-boot:run`
-3. Access API at `http://localhost:8080/api/tasks`
+```sh
+mvn spring-boot:run
+```
 
-## 📌 Roadmap
-- [ ] Add Swagger/OpenAPI docs
-- [ ] Implement role-based access
-- [ ] Add Docker & CI/CD pipeline
-- [ ] Extend with microservices (notifications, reporting)
+The API is available at `http://localhost:8080/api/tasks`. The H2 database is
+in-memory, so task data is cleared when the application stops.
 
+## Endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/api/tasks` | Return all tasks |
+| `POST` | `/api/tasks` | Create a task |
+| `DELETE` | `/api/tasks/{id}` | Delete a task (returns `204 No Content`) |
+
+Example request body for `POST /api/tasks`:
+
+```json
+{
+  "title": "Prepare project",
+  "description": "Set up the Task Manager API",
+  "completed": false
+}
+```
