@@ -19,6 +19,16 @@ Interactive API documentation is available at
 `http://localhost:8080/swagger-ui.html`; use its **Authorize** button to enter
 the JWT returned by the authentication endpoints.
 
+## Monitoring and logs
+
+Spring Boot Actuator exposes `/actuator/health` without authentication.
+`/actuator/info`, `/actuator/metrics`, and `/actuator/prometheus` require a
+valid Bearer JWT. Prometheus can scrape `/actuator/prometheus` with the same
+authentication. Logs are emitted as JSON to standard output for collection by
+Logstash or another ELK-compatible log shipper. Enable the `dev` profile for
+detailed application, web, and SQL logs; use the `prod` profile for concise
+application logs.
+
 ## Run with Docker Compose
 
 Set the JWT signing key and, optionally, database credentials before starting
