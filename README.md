@@ -14,6 +14,9 @@ mvn spring-boot:run
 
 The API is available at `http://localhost:8080`. The H2 database is in-memory,
 so user and task data is cleared when the application stops.
+Interactive API documentation is available at
+`http://localhost:8080/swagger-ui.html`; use its **Authorize** button to enter
+the JWT returned by the authentication endpoints.
 
 ## Endpoints
 
