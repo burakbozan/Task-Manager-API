@@ -1,10 +1,10 @@
 # Task Manager API
 
 A Spring Boot REST API for managing tasks, with JWT-based authentication. It uses
-Java 17, Maven, Spring Web, Spring Data JPA, Spring Security, Lombok, and an
-in-memory H2 database.
+Java 17, Maven, Spring Web, Spring Data JPA, Spring Security, Lombok, and H2 for
+local development. Docker Compose runs the application with PostgreSQL.
 
-## Run
+## Run locally
 
 With Java 17 and Maven installed, start the application from the project root:
 
@@ -12,11 +12,42 @@ With Java 17 and Maven installed, start the application from the project root:
 mvn spring-boot:run
 ```
 
-The API is available at `http://localhost:8080`. The H2 database is in-memory,
-so user and task data is cleared when the application stops.
+The API is available at `http://localhost:8080`. By default it uses an
+in-memory H2 database, so user and task data is cleared when the application
+stops.
 Interactive API documentation is available at
 `http://localhost:8080/swagger-ui.html`; use its **Authorize** button to enter
 the JWT returned by the authentication endpoints.
+
+## Run with Docker Compose
+
+Set the JWT signing key and, optionally, database credentials before starting
+the PostgreSQL and API containers:
+
+```sh
+$env:JWT_SECRET = "<Base64-encoded key of at least 256 bits>"
+$env:DB_USERNAME = "taskmanager"
+$env:DB_PASSWORD = "<database password>"
+docker compose up --build
+```
+
+Compose defaults the local development database credentials to `taskmanager`;
+override them for any shared or production deployment. Other configurable
+variables are `DB_NAME` (default `taskmanager`) and `JWT_EXPIRATION_MS`
+(default `86400000`).
+
+## CI and image publishing
+
+The workflow in `.github/workflows/ci.yml` runs `mvn clean install` against
+PostgreSQL on pushes and pull requests to `main`. Pushes to `main` also build
+and publish `ghcr.io/<owner>/<repository>`; pull requests build the image
+without publishing it.
+
+The workflow uses `GITHUB_TOKEN` for GHCR by default. If desired, configure
+`GHCR_TOKEN` (a token with package write access) and `GHCR_USERNAME` as
+repository secrets. PostgreSQL CI credentials can be overridden with the
+`DB_USERNAME` and `DB_PASSWORD` secrets; CI-only fallback values are used when
+they are absent. `JWT_SECRET` can also be configured as a repository secret.
 
 ## Endpoints
 
