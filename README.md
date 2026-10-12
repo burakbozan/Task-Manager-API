@@ -1,12 +1,12 @@
 # Task Manager API
 
 A Spring Boot REST API for managing tasks, with JWT-based authentication. It uses
-Java 17, Maven, Spring Web, Spring Data JPA, Spring Security, Lombok, and H2 for
+Java 25, Maven, Spring Web, Spring Data JPA, Spring Security, Lombok, and H2 for
 local development. Docker Compose runs the application with PostgreSQL.
 
 ## Run locally
 
-With Java 17 and Maven installed, start the application from the project root:
+With Java 25 and Maven installed, start the application from the project root:
 
 ```sh
 mvn spring-boot:run
