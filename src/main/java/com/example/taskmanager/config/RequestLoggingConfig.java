@@ -48,6 +48,6 @@ public class RequestLoggingConfig implements WebMvcConfigurer {
                             response.getStatus(), elapsedMs, exception.getClass().getSimpleName());
                 }
             }
-        }).addPathPatterns("/api/tasks", "/api/tasks/**");
+        }).addPathPatterns("/api/tasks", "/api/tasks/**", "/api/agents", "/api/agents/**");
     }
 }

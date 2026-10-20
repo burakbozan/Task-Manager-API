@@ -68,6 +68,12 @@ they are absent. `JWT_SECRET` can also be configured as a repository secret.
 | `GET` | `/api/tasks` | Return all tasks (authenticated) |
 | `POST` | `/api/tasks` | Create a task (authenticated) |
 | `DELETE` | `/api/tasks/{id}` | Delete a task (authenticated; returns `204 No Content`) |
+| `GET` | `/api/agents` | List the authenticated user's agents |
+| `POST` | `/api/agents` | Create an agent in the `DRAFT` stage |
+| `GET` | `/api/agents/{id}` | Get an owned agent |
+| `PUT` | `/api/agents/{id}` | Update an owned agent's name and description |
+| `POST` | `/api/agents/{id}/lifecycle` | Advance an agent by one lifecycle stage |
+| `DELETE` | `/api/agents/{id}` | Delete an owned agent |
 
 Register or log in with a JSON body:
 
@@ -85,3 +91,25 @@ least 256 bits to use a stable signing key across restarts; when it is unset, a
 new random key is generated at startup and existing tokens expire when the
 application restarts. Token lifetime defaults to 24 hours and can be configured
 with `JWT_EXPIRATION_MS`.
+
+Agent lifecycle stages are `DRAFT`, `DEVELOPMENT`, `TESTING`, `DEPLOYED`, and
+`RETIRED`. Transitions advance one stage at a time; invalid transitions return
+`409 Conflict`. For example, create an agent with:
+
+```json
+{
+  "name": "Research assistant",
+  "description": "Summarizes project research"
+}
+```
+
+Advance it by sending `{"stage":"DEVELOPMENT"}` to the lifecycle endpoint.
+Each user's agent records are isolated by ownership.
+
+Transient persistence failures for task and agent writes are retried up to
+three times with exponential backoff. Configure this Phoenix resilience
+behavior using `DB_RETRY_MAX_ATTEMPTS` and `DB_RETRY_INITIAL_DELAY_MS`.
+`/actuator/health/liveness` and `/actuator/health/readiness` are available for
+orchestrator probes, with readiness including database health. Graceful
+shutdown allows 20 seconds for in-flight work.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for component and runtime details.
