@@ -79,6 +79,7 @@ Register or log in with a JSON body:
 ```
 
 Send the returned token on task requests using
+
 `Authorization: Bearer <token>`. Set `JWT_SECRET` to a Base64-encoded key of at
 least 256 bits to use a stable signing key across restarts; when it is unset, a
 new random key is generated at startup and existing tokens expire when the
