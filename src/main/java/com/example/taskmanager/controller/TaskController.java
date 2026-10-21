@@ -11,9 +11,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -27,13 +32,13 @@ public class TaskController {
     }
 
     @GetMapping
-    @Operation(summary = "List tasks", description = "Returns all tasks.")
+    @Operation(summary = "List tasks", description = "Returns tasks owned by the authenticated user.")
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
                     description = "Tasks returned",
                     content = @Content(
-                            array = @ArraySchema(schema = @Schema(implementation = Task.class)),
+                            array = @ArraySchema(schema = @Schema(implementation = TaskResponse.class)),
                             examples = @ExampleObject(value = """
                                     [
                                       {
@@ -46,18 +51,25 @@ public class TaskController {
                                     """))),
             @ApiResponse(responseCode = "401", description = "Authentication required")
     })
-    public List<Task> getAllTasks() {
-        return service.findAll();
+    public List<TaskResponse> getAllTasks(Authentication authentication) {
+        return service.findAll(authentication.getName()).stream().map(TaskResponse::from).toList();
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Get a task", description = "Returns the specified task if owned by the authenticated user.")
+    public TaskResponse getTask(@PathVariable Long id, Authentication authentication) {
+        return TaskResponse.from(service.findById(id, authentication.getName()));
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create a task", description = "Creates and returns a task.")
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "200",
+                    responseCode = "201",
                     description = "Task created",
                     content = @Content(
-                            schema = @Schema(implementation = Task.class),
+                            schema = @Schema(implementation = TaskResponse.class),
                             examples = @ExampleObject(value = """
                                     {
                                       "id": 1,
@@ -68,12 +80,12 @@ public class TaskController {
                                     """))),
             @ApiResponse(responseCode = "401", description = "Authentication required")
     })
-    public Task createTask(
+    public TaskResponse createTask(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Task data to create",
                     required = true,
                     content = @Content(
-                            schema = @Schema(implementation = Task.class),
+                            schema = @Schema(implementation = TaskRequest.class),
                             examples = @ExampleObject(value = """
                                     {
                                       "title": "Prepare project",
@@ -81,8 +93,19 @@ public class TaskController {
                                       "completed": false
                                     }
                                     """)))
-            @RequestBody Task task) {
-        return service.save(task);
+            @Valid @RequestBody TaskRequest request,
+            Authentication authentication) {
+        return TaskResponse.from(service.create(toTask(request), authentication.getName()));
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Update a task", description = "Updates a task owned by the authenticated user.")
+    public TaskResponse updateTask(
+            @Parameter(description = "Identifier of the task to update", example = "1")
+            @PathVariable Long id,
+            @Valid @RequestBody TaskRequest request,
+            Authentication authentication) {
+        return TaskResponse.from(service.update(id, toTask(request), authentication.getName()));
     }
 
     @DeleteMapping("/{id}")
@@ -94,7 +117,40 @@ public class TaskController {
     })
     public void deleteTask(
             @Parameter(description = "Identifier of the task to delete", example = "1")
-            @PathVariable Long id) {
-        service.delete(id);
+            @PathVariable Long id,
+            Authentication authentication) {
+        service.delete(id, authentication.getName());
+    }
+
+    private Task toTask(TaskRequest request) {
+        Task task = new Task();
+        task.setTitle(request.title());
+        task.setDescription(request.description());
+        task.setCompleted(request.completed());
+        return task;
+    }
+
+    public record TaskRequest(
+            @NotBlank @Size(max = 200) String title,
+            @Size(max = 2000) String description,
+            boolean completed) {
+    }
+
+    public record TaskResponse(
+            Long id,
+            String title,
+            String description,
+            boolean completed,
+            Instant createdAt,
+            Instant updatedAt) {
+        static TaskResponse from(Task task) {
+            return new TaskResponse(
+                    task.getId(),
+                    task.getTitle(),
+                    task.getDescription(),
+                    task.isCompleted(),
+                    task.getCreatedAt(),
+                    task.getUpdatedAt());
+        }
     }
 }

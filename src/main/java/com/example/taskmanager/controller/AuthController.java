@@ -1,6 +1,9 @@
 package com.example.taskmanager.controller;
 
 import com.example.taskmanager.service.UserService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,12 +24,12 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponse register(@RequestBody AuthRequest request) {
+    public AuthResponse register(@Valid @RequestBody AuthRequest request) {
         return new AuthResponse(userService.register(request.username(), request.password()));
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody AuthRequest request) {
+    public AuthResponse login(@Valid @RequestBody AuthRequest request) {
         try {
             return new AuthResponse(userService.authenticate(request.username(), request.password()));
         } catch (AuthenticationException exception) {
@@ -34,7 +37,9 @@ public class AuthController {
         }
     }
 
-    public record AuthRequest(String username, String password) {
+    public record AuthRequest(
+            @NotBlank @Size(max = 255) String username,
+            @NotBlank @Size(max = 72) String password) {
     }
 
     public record AuthResponse(String token) {

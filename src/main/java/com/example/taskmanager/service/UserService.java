@@ -12,8 +12,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,17 +38,26 @@ public class UserService implements UserDetailsService {
         if (username == null || username.isBlank() || password == null || password.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username and password are required");
         }
+        if (password.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must not exceed 72 UTF-8 bytes");
+        }
         if (userRepository.existsByUsername(username)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already registered");
         }
 
         User user = new User(username, passwordEncoder.encode(password), Set.of("ROLE_USER"));
-        User savedUser = userRepository.save(user);
+        User savedUser;
+        try {
+            savedUser = userRepository.saveAndFlush(user);
+        } catch (DataIntegrityViolationException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already registered", exception);
+        }
         return jwtUtil.generateToken(toUserDetails(savedUser));
     }
 
     public String authenticate(String username, String password) {
-        if (username == null || password == null) {
+        if (username == null || password == null
+                || password.getBytes(StandardCharsets.UTF_8).length > 72) {
             throw new BadCredentialsException("Invalid username or password");
         }
         User user = userRepository.findByUsername(username)

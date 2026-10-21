@@ -14,7 +14,7 @@ mvn spring-boot:run
 
 The API is available at `http://localhost:8080`. By default it uses an
 in-memory H2 database, so user and task data is cleared when the application
-stops.
+stops. Agent data is cleared as well.
 Interactive API documentation is available at
 `http://localhost:8080/swagger-ui.html`; use its **Authorize** button to enter
 the JWT returned by the authentication endpoints.
@@ -65,9 +65,11 @@ they are absent. `JWT_SECRET` can also be configured as a repository secret.
 | --- | --- | --- |
 | `POST` | `/api/auth/register` | Register a user and receive a JWT |
 | `POST` | `/api/auth/login` | Authenticate and receive a JWT |
-| `GET` | `/api/tasks` | Return all tasks (authenticated) |
-| `POST` | `/api/tasks` | Create a task (authenticated) |
-| `DELETE` | `/api/tasks/{id}` | Delete a task (authenticated; returns `204 No Content`) |
+| `GET` | `/api/tasks` | Return the authenticated user's tasks |
+| `GET` | `/api/tasks/{id}` | Get an owned task |
+| `POST` | `/api/tasks` | Create a task (`201 Created`) |
+| `PUT` | `/api/tasks/{id}` | Update an owned task |
+| `DELETE` | `/api/tasks/{id}` | Delete an owned task (`204 No Content`) |
 | `GET` | `/api/agents` | List the authenticated user's agents |
 | `POST` | `/api/agents` | Create an agent in the `DRAFT` stage |
 | `GET` | `/api/agents/{id}` | Get an owned agent |
@@ -83,6 +85,10 @@ Register or log in with a JSON body:
   "password": "a-secure-password"
 }
 ```
+
+Usernames and passwords are required. Passwords are limited to 72 UTF-8 bytes
+to match BCrypt's input limit; longer inputs are rejected instead of being
+silently truncated.
 
 Send the returned token on task requests using
 
@@ -105,6 +111,12 @@ Agent lifecycle stages are `DRAFT`, `DEVELOPMENT`, `TESTING`, `DEPLOYED`, and
 
 Advance it by sending `{"stage":"DEVELOPMENT"}` to the lifecycle endpoint.
 Each user's agent records are isolated by ownership.
+
+Tasks are also scoped to their creating user. Task creation accepts `title`,
+optional `description`, and optional `completed`; task responses do not accept
+or expose ownership identifiers. Existing task records created before
+ownership was added have no owner and are intentionally not exposed to any
+account; migrate or remove those records before upgrading a populated database.
 
 Transient persistence failures for task and agent writes are retried up to
 three times with exponential backoff. Configure this Phoenix resilience

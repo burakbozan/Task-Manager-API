@@ -6,6 +6,8 @@ The application is a modular Spring Boot REST API. It manages authenticated
 users and tasks, and provides user-owned agent definitions with a controlled
 development lifecycle. It is packaged as a container and can use H2 locally or
 PostgreSQL through Docker Compose.
+JPA sessions are closed before web response serialization; controllers return
+explicit response records rather than relying on lazy-loading side effects.
 
 ## Components
 
@@ -30,6 +32,11 @@ DRAFT -> DEVELOPMENT -> TESTING -> DEPLOYED -> RETIRED
 Repeating the current stage is idempotent. Skipping stages or moving backwards
 returns `409 Conflict`. Agent records include creation/update timestamps. API
 responses omit internal persistence relations.
+
+Tasks are associated with their creating user. Repository queries resolve tasks
+through the authenticated username, and API requests cannot set IDs or owner
+fields. Existing task rows without an owner remain inaccessible after upgrade
+until they are explicitly migrated to an account.
 
 ## Phoenix resilience
 
