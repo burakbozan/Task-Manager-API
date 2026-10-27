@@ -74,3 +74,5 @@ documentation, and health probes are public.
 This document reflects the current source structure and runtime configuration.
 Update it when adding/removing API modules, persistence relationships,
 authentication behavior, or operational infrastructure.
+
+
