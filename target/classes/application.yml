@@ -1,0 +1,84 @@
+spring:
+  application:
+    name: task-manager-api
+  datasource:
+    url: "${DB_URL:jdbc:h2:mem:taskdb;DB_CLOSE_DELAY=-1}"
+    driver-class-name: "${DB_DRIVER:org.h2.Driver}"
+    username: "${DB_USERNAME:sa}"
+    password: "${DB_PASSWORD:}"
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  h2:
+    console:
+      enabled: true
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+
+app:
+  jwt:
+    secret: "${JWT_SECRET:}"
+    expiration-ms: "${JWT_EXPIRATION_MS:86400000}"
+  resilience:
+    max-attempts: "${DB_RETRY_MAX_ATTEMPTS:3}"
+    initial-delay-ms: "${DB_RETRY_INITIAL_DELAY_MS:100}"
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+  info:
+    env:
+      enabled: true
+
+server:
+  shutdown: graceful
+
+info:
+  app:
+    name: Task Manager API
+    description: REST API for managing tasks
+    version: v1
+
+logging:
+  level:
+    root: INFO
+    com.example.taskmanager: INFO
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+logging:
+  level:
+    com.example.taskmanager: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+logging:
+  level:
+    root: INFO
+    com.example.taskmanager: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
